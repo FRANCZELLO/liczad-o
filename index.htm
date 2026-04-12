@@ -1,1 +1,117 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liczadło</title>
 
+<style>
+body {
+    margin:0;
+    font-family: Arial;
+    background:#111;
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.app {
+    width:380px;
+    padding:20px;
+    background:#222;
+    border-radius:12px;
+}
+
+input {
+    width:80px;
+    margin:5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<h2>Liczadło</h2>
+
+<div>500 zł <input id="b500"></div>
+<div>200 zł <input id="b200"></div>
+<div>100 zł <input id="b100"></div>
+<div>50 zł <input id="b50"></div>
+<div>20 zł <input id="b20"></div>
+<div>10 zł <input id="b10"></div>
+<div>5 zł <input id="b5"></div>
+<div>2 zł <input id="b2"></div>
+<div>1 zł <input id="b1"></div>
+
+<h3>Suma: <span id="suma">0</span></h3>
+
+<h3>Długi</h3>
+Tata <input id="tata"><br>
+Mama <input id="mama"><br>
+Faustyna <input id="faustyna"><br>
+
+<h3>Zostaje: <span id="zostaje">0</span></h3>
+
+</div>
+
+<script>
+// Firebase config (wklej swój)
+const firebaseConfig = {
+  apiKey: "TU",
+  authDomain: "TU",
+  projectId: "TU"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const appFirebase = initializeApp(firebaseConfig);
+const db = getFirestore(appFirebase);
+
+const pola = ["b500","b200","b100","b50","b20","b10","b5","b2","b1","tata","mama","faustyna"];
+
+function policz(){
+    const sumaVal =
+        500*b500.value + 200*b200.value + 100*b100.value +
+        50*b50.value + 20*b20.value + 10*b10.value +
+        5*b5.value + 2*b2.value + 1*b1.value;
+
+    const dlug =
+        Number(tata.value)+Number(mama.value)+Number(faustyna.value);
+
+    suma.textContent = sumaVal;
+    zostaje.textContent = sumaVal - dlug;
+
+    zapisz();
+}
+
+async function zapisz(){
+    let dane={};
+    pola.forEach(id=>dane[id]=document.getElementById(id).value);
+    await setDoc(doc(db,"liczadlo","stan"), dane);
+}
+
+async function wczytaj(){
+    const snap = await getDoc(doc(db,"liczadlo","stan"));
+    if(snap.exists()){
+        const dane = snap.data();
+        pola.forEach(id=>{
+            document.getElementById(id).value = dane[id] || 0;
+        });
+        policz();
+    }
+}
+
+pola.forEach(id=>{
+    document.getElementById(id).addEventListener("input", policz);
+});
+
+wczytaj();
+</script>
+
+</body>
+</html>
