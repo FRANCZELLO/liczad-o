@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liczadło</title>
+
+<style>
+body {
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, Arial;
+    background: linear-gradient(160deg, #0a0a0a, #1a1a1a);
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.app {
+    width:420px;
+    padding:20px;
+    border-radius:24px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+h2 {
+    text-align:center;
+    margin-bottom:15px;
+}
+
+.section {
+    margin-top:15px;
+}
+
+.row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:8px 0;
+    padding:10px;
+    border-radius:12px;
+    background: rgba(255,255,255,0.05);
+}
+
+input {
+    width:70px;
+    height:32px;
+    border-radius:10px;
+    border:none;
+    text-align:center;
+    font-size:16px;
+}
+
+.total {
+    font-size:22px;
+    text-align:center;
+    margin-top:10px;
+}
+
+.final {
+    font-size:24px;
+    text-align:center;
+    margin-top:10px;
+    color:#4cff9f;
+}
+
+.debt input {
+    width:90px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<h2>Liczadło pieniędzy</h2>
+
+<div class="section">
+
+<div class="row">500 zł <input id="b500"></div>
+<div class="row">200 zł <input id="b200"></div>
+<div class="row">100 zł <input id="b100"></div>
+<div class="row">50 zł <input id="b50"></div>
+<div class="row">20 zł <input id="b20"></div>
+<div class="row">10 zł <input id="b10"></div>
+<div class="row">5 zł <input id="b5"></div>
+<div class="row">2 zł <input id="b2"></div>
+<div class="row">1 zł <input id="b1"></div>
+
+</div>
+
+<div class="total">
+Suma: <span id="suma">0</span> zł
+</div>
+
+<div class="section">
+
+<h3>Długi</h3>
+
+<div class="row debt">Tata <input id="tata"></div>
+<div class="row debt">Mama <input id="mama"></div>
+<div class="row debt">Faustyna <input id="faustyna"></div>
+
+</div>
+
+<div class="final">
+Zostaje: <span id="zostaje">0</span> zł
+</div>
+
+</div>
+
+<script>
+// Firebase config (wklej swój)
+const firebaseConfig = {
+  apiKey: "TU",
+  authDomain: "TU",
+  projectId: "TU"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const appFirebase = initializeApp(firebaseConfig);
+const db = getFirestore(appFirebase);
+
+const pola = ["b500","b200","b100","b50","b20","b10","b5","b2","b1","tata","mama","faustyna"];
+
+function policz(){
+    const sumaVal =
+        500*b500.value + 200*b200.value + 100*b100.value +
+        50*b50.value + 20*b20.value + 10*b10.value +
+        5*b5.value + 2*b2.value + 1*b1.value;
+
+    const dlug =
+        Number(tata.value)+Number(mama.value)+Number(faustyna.value);
+
+    suma.textContent = sumaVal;
+    zostaje.textContent = sumaVal - dlug;
+
+    zapisz();
+}
+
+async function zapisz(){
+    let dane={};
+    pola.forEach(id=>dane[id]=document.getElementById(id).value);
+    await setDoc(doc(db,"liczadlo","stan"), dane);
+}
+
+async function wczytaj(){
+    const snap = await getDoc(doc(db,"liczadlo","stan"));
+    if(snap.exists()){
+        const dane = snap.data();
+        pola.forEach(id=>{
+            document.getElementById(id).value = dane[id] || 0;
+        });
+        policz();
+    }
+}
+
+pola.forEach(id=>{
+    document.getElementById(id).addEventListener("input", policz);
+});
+
+wczytaj();
+</script>
+
+</body>
+</html>
